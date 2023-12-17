@@ -63,7 +63,7 @@ int main() {
             if (event.type == SDL_MOUSEBUTTONDOWN) {
                 int mouse_x, mouse_y = 0;
                 SDL_GetMouseState(&mouse_x, &mouse_y);
-                for (int i = 0; i < 10000; i++) {
+                for (int i = 0; i < 1000; i++) {
                     dest_rect.x = (float) (mouse_x + (random() % 400) - 200);
                     dest_rect.y = (float) (mouse_y + (random() % 400) - 200);
                     CM_ManagerAddParticle(manager, tex, &dest_rect, NULL, 0, 0, 0, 0, 10);
