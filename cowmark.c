@@ -1,7 +1,7 @@
 #include "cowmark.h"
 #include <SDL2/SDL.h>
 
-CM_Manager *CM_CreateManager(int max_particles) {
+CM_Manager *CM_CreateManager(const int max_particles) {
     CM_Manager *manager = malloc(sizeof(CM_Manager));
     manager->particles = malloc(sizeof(CM_Particle) * max_particles);
     manager->source_rects = malloc(sizeof(SDL_Rect) * max_particles);
@@ -23,7 +23,17 @@ CM_Manager *CM_CreateManager(int max_particles) {
 }
 
 // TODO: Reduce param count here?
-int CM_ManagerAddParticle(CM_Manager *manager, SDL_Texture *texture, SDL_FRect *dest_rect, SDL_Rect *source_rect, double width_vel, double height_vel, double x_vel, double y_vel, double life) {
+int CM_ManagerAddParticle(
+    CM_Manager *manager,
+    SDL_Texture *texture,
+    SDL_Rect *dest_rect,
+    SDL_Rect *source_rect,
+    double width_vel,
+    double height_vel,
+    double x_vel,
+    double y_vel,
+    double life) {
+
     int new_index = manager->first_free;
     // No free particles
     if (new_index < 0) {
@@ -40,6 +50,8 @@ int CM_ManagerAddParticle(CM_Manager *manager, SDL_Texture *texture, SDL_FRect *
     manager->particles[new_index].last = -1;
     // Fill in the particle data
     manager->particles[new_index].texture = texture;
+    manager->particles[new_index].x = dest_rect->x;
+    manager->particles[new_index].y = dest_rect->y;
     manager->particles[new_index].width_vel = width_vel;
     manager->particles[new_index].height_vel = height_vel;
     manager->particles[new_index].x_vel = x_vel;
@@ -51,12 +63,9 @@ int CM_ManagerAddParticle(CM_Manager *manager, SDL_Texture *texture, SDL_FRect *
         manager->particles[new_index].source_rect = manager->source_rects + new_index;
         manager->source_rects[new_index] = *source_rect;
     }
-    if (dest_rect == NULL) {
-        manager->particles[new_index].dest_rect = NULL;
-    } else {
-        manager->particles[new_index].dest_rect = manager->dest_rects + new_index;
-        manager->dest_rects[new_index] = *dest_rect;
-    }
+
+    manager->dest_rects[new_index] = *dest_rect;
+    return new_index;
 }
 
 int CM_ManagerKillParticle(CM_Manager *manager, int particle_id) {
@@ -73,6 +82,10 @@ int CM_ManagerKillParticle(CM_Manager *manager, int particle_id) {
 
     manager->particles[particle_id].last = -1;
     manager->first_free = particle_id;
+    if (manager->particles[particle_id].life <= 0) {
+        return -1;
+    }
+    return particle_id;
 }
 
 void CM_ManagerUpdate(CM_Manager *manager, double dt) {
@@ -85,7 +98,6 @@ void CM_ManagerUpdate(CM_Manager *manager, double dt) {
             manager->particles[index].dest_rect->w += (float) (manager->particles[index].width_vel * dt);
             manager->particles[index].dest_rect->h += (float) (manager->particles[index].height_vel * dt);
         }
-        manager->particles[index].rotation += manager->particles[index].rotation_speed * dt;
         manager->particles[index].life -= dt;
 
         next_index = manager->particles[index].next;
@@ -99,14 +111,12 @@ void CM_ManagerUpdate(CM_Manager *manager, double dt) {
 void CM_ManagerDraw(CM_Manager *manager, SDL_Renderer *renderer) {
     int index = manager->first_used;
     while (index >= 0) {
-        SDL_RenderCopyExF(
+        SDL_RenderCopy(
                 renderer,
                 manager->particles[index].texture,
                 manager->particles[index].source_rect,
-                manager->particles[index].dest_rect,
-                manager->particles[index].rotation,
-                NULL,
-                SDL_FLIP_NONE);
+                manager->particles[index].dest_rect
+                );
         index = manager->particles[index].next;
     }
 }

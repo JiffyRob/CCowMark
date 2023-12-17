@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAX_PARTICLES 100000
+#define MAX_PARTICLES 1000000
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
 
@@ -49,13 +49,14 @@ int main() {
     Uint64 this_tick = 0;
     double dt = 0;
     SDL_Event event;
-    SDL_FRect dest_rect;
+    SDL_Rect dest_rect;
     dest_rect.w = 24;
     dest_rect.h = 16;
     while (!quit) {
         last_tick = this_tick;
         this_tick = SDL_GetTicks64();
         dt = (double) (this_tick - last_tick) / 1000.0;
+        printf("%f\n", dt);
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
                 quit++;
@@ -63,7 +64,7 @@ int main() {
             if (event.type == SDL_MOUSEBUTTONDOWN) {
                 int mouse_x, mouse_y = 0;
                 SDL_GetMouseState(&mouse_x, &mouse_y);
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < 100000; i++) {
                     dest_rect.x = (float) (mouse_x + (random() % 400) - 200);
                     dest_rect.y = (float) (mouse_y + (random() % 400) - 200);
                     CM_ManagerAddParticle(manager, tex, &dest_rect, NULL, 0, 0, 0, 0, 10);
